@@ -27,24 +27,10 @@ Supports creating, deleting, filtering, and marking notifications as read.
 
 Notifications are saved to localStorage, so they persist across refreshes.
 
-Each notification includes:
-
-ID
-
-Text
-
-Read status
-
-Timestamp
+Each notification includes:  ID, Text, Read, status, Timestamp
 
 🔄 3. Filtering Notifications
-Users can view:
-
-All
-
-Unread
-
-Read
+Users can view:  All, Unread, Read
 
 Implemented using a filter state and .filter() method on the notification array.
 
