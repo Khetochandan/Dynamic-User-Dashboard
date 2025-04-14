@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-
 const Abc = () => {
-  // 1️⃣ Initial State from localStorage
+  // 1️⃣ useState + localStorage Initialization
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : { name: "John Doe", loggedIn: false };
@@ -14,16 +13,25 @@ const Abc = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [newText, setNewText] = useState(""); // 8️⃣ Input for new notification
-  const [filter, setFilter] = useState("all"); // 9️⃣ Filter (all, read, unread)
+  const [newText, setNewText] = useState(""); // 7️⃣ Controlled input for notification
+  const [filter, setFilter] = useState("all"); // 6️⃣ Filter for read/unread/all
 
-  // 3️⃣ Simulate API Call on Login
+  // 2️⃣ useEffect: Sync to localStorage when notifications change
+  useEffect(() => {
+    localStorage.setItem("notifications", JSON.stringify(notifications));
+  }, [notifications]);
+
+  // 3️⃣ Derived state: Count of unread notifications
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // 4️⃣ Toggle Login / Simulate API Notification Fetch
   const toggleLogin = () => {
     const nextStatus = !user.loggedIn;
     const updatedUser = { ...user, loggedIn: nextStatus };
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
 
+    // Load fake notifications if logging in and none exist
     if (nextStatus && notifications.length === 0) {
       setLoading(true);
       setTimeout(() => {
@@ -56,36 +64,28 @@ const Abc = () => {
         setNotifications(initialNotifs);
         localStorage.setItem("notifications", JSON.stringify(initialNotifs));
         setLoading(false);
-      }, 1500);
+      }, 1500); // simulate API delay
     }
   };
 
-  // Save to localStorage when notifications change
-  useEffect(() => {
-    localStorage.setItem("notifications", JSON.stringify(notifications));
-  }, [notifications]);
-
-  // Derived State
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  // 2️⃣ Mark one as read
+  // 5️⃣ Mark one notification as read
   const markOneAsRead = (id) => {
     setNotifications(
-      notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      )
+      notifications.map((n) => n.id === id ? { ...n, read: true } : n)
     );
   };
 
-  const markAllAsRead = () =>
+  // 5️⃣ Mark all notifications as read
+  const markAllAsRead = () => {
     setNotifications(notifications.map((n) => ({ ...n, read: true })));
+  };
 
-  // 4️⃣ Delete
+  // 5️⃣ Delete notification
   const deleteNotification = (id) => {
     setNotifications(notifications.filter((n) => n.id !== id));
   };
 
-  // 8️⃣ Add New Notification
+  // 7️⃣ Add new notification
   const addNotification = () => {
     if (!newText.trim()) return;
     const newNotif = {
@@ -98,13 +98,14 @@ const Abc = () => {
     setNewText("");
   };
 
-  // 9️⃣ Filter Notifications
+  // 6️⃣ Filter notifications list based on selected filter
   const filteredNotifications = notifications.filter((n) => {
     if (filter === "read") return n.read;
     if (filter === "unread") return !n.read;
     return true;
   });
 
+  // 8️⃣ Render UI with Conditional Rendering
   return (
     <div className="h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg text-center">
@@ -113,6 +114,7 @@ const Abc = () => {
             <p className="text-lg text-gray-600">⏳ Loading notifications...</p>
           ) : (
             <div>
+              {/* Header */}
               <h2 className="text-2xl font-bold text-green-600 mb-2">
                 Welcome, {user.name}!
               </h2>
@@ -122,29 +124,23 @@ const Abc = () => {
                 unread notifications.
               </p>
 
-              {/* 🔍 Filter Buttons */}
+              {/* 6️⃣ Filter Buttons */}
               <div className="flex justify-center gap-3 mb-4">
-                <button
-                  onClick={() => setFilter("all")}
-                  className={`px-3 py-1 rounded ${filter === "all" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-                >
+                <button onClick={() => setFilter("all")}
+                  className={`px-3 py-1 rounded ${filter === "all" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
                   All
                 </button>
-                <button
-                  onClick={() => setFilter("unread")}
-                  className={`px-3 py-1 rounded ${filter === "unread" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-                >
+                <button onClick={() => setFilter("unread")}
+                  className={`px-3 py-1 rounded ${filter === "unread" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
                   Unread
                 </button>
-                <button
-                  onClick={() => setFilter("read")}
-                  className={`px-3 py-1 rounded ${filter === "read" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-                >
+                <button onClick={() => setFilter("read")}
+                  className={`px-3 py-1 rounded ${filter === "read" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
                   Read
                 </button>
               </div>
 
-              {/* 📝 New Notification Form */}
+              {/* 7️⃣ New Notification Input */}
               <div className="flex mb-4">
                 <input
                   value={newText}
@@ -160,7 +156,7 @@ const Abc = () => {
                 </button>
               </div>
 
-              {/* 🔔 Notifications List */}
+              {/* 5️⃣ Notifications List (Dynamic List Rendering) */}
               <ul className="text-left mb-4">
                 {filteredNotifications.map((n) => (
                   <li
@@ -196,7 +192,7 @@ const Abc = () => {
                 ))}
               </ul>
 
-              {/* 🔘 Controls */}
+              {/* 5️⃣ Controls */}
               <div className="flex justify-center gap-3">
                 <button
                   onClick={markAllAsRead}
@@ -215,9 +211,7 @@ const Abc = () => {
           )
         ) : (
           <div>
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
-              Please Log In
-            </h2>
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Please Log In</h2>
             <button
               onClick={toggleLogin}
               className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
